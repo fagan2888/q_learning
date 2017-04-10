@@ -3,6 +3,8 @@
 import numpy as np
 import operator
 from random import sample as sample
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcol
 
 class Space:
     """Space for an agent to navigate through to find the goal state
@@ -14,7 +16,7 @@ class Space:
         reward (float): reward value for finding the goal
         grid (np array): matrix of possible states populated with zeros except for the goal state
     """
-    def __init__(self,height=9,width=9,goal=(7,8),reward=1.8):
+    def __init__(self,height=7,width=11,goal=(5,9),reward=2.5):
         self.goal = goal
         self.height = height
         self.width = width
@@ -33,11 +35,13 @@ class Agent:
         move_options (dict): move costs to neighboring states
         trail (list): traceable path the agent followed
     """
-    def __init__(self,gamma=.8,space=Space(),state=(0,0),move_cost=0.02):
+    def __init__(self,gamma=.9,space=Space(),state=(0,0),move_cost=0.02,out_path='steps/'):
         self.directions = {'N':(-1,0),'S':(1,0),'E':(0,1),'W':(0,-1)}
+        self.out_path = out_path
         self.gamma = gamma
         self.space = space
         self.state = state
+        self.step = 0
         self.move_cost = move_cost
         self.move_options = {}
         self.trail = []
@@ -50,12 +54,26 @@ class Agent:
             self.seek(start_state)
             #print(self.space.grid)
 
+    def plot_path(self):
+        fig = plt.figure()
+        plt.clf()
+        ax = fig.add_subplot(111)
+        ax.set_aspect(1)
+        ax.xaxis.tick_top()
+        ax.annotate('A',xy=(self.state[1],self.state[0]),color='steelblue',horizontalalignment='center',verticalalignment='center')
+        res = ax.imshow(self.space.grid,cmap=plt.cm.Greys,interpolation='nearest')
+        s = (5 - len(str(self.step))) * '0' + str(self.step)
+
+        plt.savefig(self.out_path + 'step' + s + '.png')
+
     def seek(self,start_state=(0,0)):
         """Follow the path of least resistance until the goal is found"""
         self.trail = []
         self.state = start_state
         while self.state <> self.space.goal:
+            #self.plot_path()
             self.move()
+            self.step += 1
         print('->'.join(self.trail))
 
     def get_expected_value(self,value):
